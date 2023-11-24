@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Proxy-Function
+
+  provides a proxy function to redirect http calls to nest js controllers
+  
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  ProxyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Service to Support BraIrish endpoints
+      FunctionName: !Sub ${AWS::StackName}-Proxy
+      CodeUri: proxy/
+      Handler: dist/src/app.lambdaHandler
+      Runtime: nodejs16.x
+      MemorySize: 512
+      Timeout: 30
+      Tracing: Active
+      AutoPublishAlias: !Ref LiveAlias
+      Environment:
+        Variables:
+          FUNCTION_NAME: !Sub ${AWS::StackName}-ProxyGP
+          POWERTOOLS_SERVICE_NAME: !Sub ${AWS::StackName}
+          AWS_ACCOUNT_ID_ENV: !Sub ${AWS::AccountId}
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Path: /account
+            Method: get
+
+Outputs:
+  ProxyApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/proxy/"
+  ProxyFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  ProxyFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn
